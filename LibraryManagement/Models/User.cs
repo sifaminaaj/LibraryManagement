@@ -14,6 +14,6 @@
 
         public string Role { get; set; }
 
-        public List<Borrow> Borrows { get; set; }
+        public List<Borrow> Borrows { get; set; } = new List<Borrow>();
     }
 }

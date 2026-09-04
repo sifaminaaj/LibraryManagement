@@ -1,67 +1,64 @@
 ﻿using LibraryManagement.Models;
 using Microsoft.AspNetCore.Mvc;
 
-[Route("api/[controller]")]
-[ApiController]
-public class BookController : ControllerBase
+namespace LibraryManagement.Controllers
 {
-    private static List<Book> books = new List<Book>();
-
-    // GET: api/Book
-    [HttpGet]
-    public IActionResult GetBooks()
+    [Route("api/[controller]")]
+    [ApiController]
+    public class BookController : ControllerBase
     {
-        return Ok(books);
-    }
+        private static List<Book> books = new List<Book>();
 
-    // GET: api/Book/1
-    [HttpGet("{id}")]
-    public IActionResult GetBook(int id)
-    {
-        var book = books.FirstOrDefault(x => x.BookId == id);
+        [HttpGet]
+        public IActionResult GetBooks()
+        {
+            return Ok(books);
+        }
 
-        if (book == null)
-            return NotFound();
+        [HttpGet("{id}")]
+        public IActionResult GetBook(int id)
+        {
+            var book = books.FirstOrDefault(x => x.BookId == id);
 
-        return Ok(book);
-    }
+            if (book == null)
+                return NotFound();
 
-    // POST: api/Book
-    [HttpPost]
-    public IActionResult CreateBook(Book book)
-    {
-        books.Add(book);
+            return Ok(book);
+        }
 
-        return Ok(book);
-    }
+        [HttpPost]
+        public IActionResult CreateBook(Book book)
+        {
+            books.Add(book);
 
-    // PUT: api/Book/1
-    [HttpPut("{id}")]
-    public IActionResult UpdateBook(int id, Book book)
-    {
-        var existingBook = books.FirstOrDefault(x => x.BookId == id);
+            return Ok(book);
+        }
 
-        if (existingBook == null)
-            return NotFound();
+        [HttpPut("{id}")]
+        public IActionResult UpdateBook(int id, Book book)
+        {
+            var existingBook = books.FirstOrDefault(x => x.BookId == id);
 
-        existingBook.Title = book.Title;
-        existingBook.Author = book.Author;
-        
+            if (existingBook == null)
+                return NotFound();
 
-        return Ok(existingBook);
-    }
+            existingBook.Title = book.Title;
+            existingBook.Author = book.Author;
 
-    // DELETE: api/Book/1
-    [HttpDelete("{id}")]
-    public IActionResult DeleteBook(int id)
-    {
-        var book = books.FirstOrDefault(x => x.BookId == id);
+            return Ok(existingBook);
+        }
 
-        if (book == null)
-            return NotFound();
+        [HttpDelete("{id}")]
+        public IActionResult DeleteBook(int id)
+        {
+            var book = books.FirstOrDefault(x => x.BookId == id);
 
-        books.Remove(book);
+            if (book == null)
+                return NotFound();
 
-        return Ok("Book deleted");
+            books.Remove(book);
+
+            return Ok("Book deleted");
+        }
     }
 }

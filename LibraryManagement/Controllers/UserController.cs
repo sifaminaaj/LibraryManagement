@@ -2,117 +2,140 @@
 using LibraryManagement.Models;
 using Microsoft.AspNetCore.Mvc;
 
-[Route("api/[controller]")]
-[ApiController]
-public class UserController : ControllerBase
+namespace LibraryManagement.Controllers
 {
-    private readonly ApplicationDbContext _context;
-
-    public UserController(ApplicationDbContext context)
+    [Route("api/[controller]")]
+    [ApiController]
+    public class UserController : ControllerBase
     {
-        _context = context;
-    }
+        private readonly ApplicationDbContext _context;
 
-    // GET: api/User
-    [HttpGet]
-    public IActionResult GetUsers()
-    {
-        return Ok(_context.Users.ToList());
-    }
-
-    // GET: api/User/1
-    [HttpGet("{id}")]
-    public IActionResult GetUser(int id)
-    {
-        var user = _context.Users.FirstOrDefault(x => x.UserId == id);
-
-        if (user == null)
-            return NotFound();
-
-        return Ok(user);
-    }
-
-    // POST: api/User
-    [HttpPost]
-    public IActionResult CreateUser(User user)
-    {
-        _context.Users.Add(user);
-        _context.SaveChanges();
-
-        return Ok(user);
-    }
-    [HttpPost("signup")]
-    public IActionResult Signup(User user)
-    {
-        var existingUser = _context.Users.FirstOrDefault(x => x.Username == user.Username);
-        if (existingUser != null)
-            return BadRequest("Username already exists");
-        _context.Users.Add(user);
-        return Ok(user);
-    }
-    // POST: api/User/login
-    [HttpPost("login")]
-    public IActionResult Login(string username, string password)
-    {
-        var user = _context.Users.FirstOrDefault(x =>
-            x.Username == username &&
-            x.Password == password);
-
-        if (user == null)
-            return Unauthorized("Invalid username or password");
-
-        return Ok(new
+        public UserController(ApplicationDbContext context)
         {
-            message = "Login successful",
-            userId = user.UserId,
-            name = user.Name,
-            role = user.Role
-        });
-    }
-    // POST: api/User/logout
-    [HttpPost("logout")]
-    public IActionResult Logout()
-    {
-        return Ok("Logout successful");
-    }
+            _context = context;
+        }
 
-    // PUT: api/User/1
-    [HttpPut("{id}")]
-    public IActionResult UpdateUser(int id, User user)
-    {
-        var existingUser = _context.Users.FirstOrDefault(x => x.UserId == id);
+        // GET: api/User
+        [HttpGet]
+        public IActionResult GetUsers()
+        {
+            return Ok(_context.Users.ToList());
+        }
 
-        if (existingUser == null)
-            return NotFound();
+        // GET: api/User/1
+        [HttpGet("{id}")]
+        public IActionResult GetUser(int id)
+        {
+            var user = _context.Users.FirstOrDefault(x => x.UserId == id);
 
-        existingUser.Name = user.Name;
-        existingUser.Department = user.Department;
-        existingUser.Username = user.Username;
-        existingUser.Password = user.Password;
-        existingUser.Role = user.Role;
+            if (user == null)
+                return NotFound("User not found");
 
-        return Ok(existingUser);
-    }
+            return Ok(user);
+        }
 
-    // DELETE: api/User/1
-    [HttpDelete("{id}")]
-    public IActionResult DeleteUser(int id)
-    {
-        var user = _context.Users.FirstOrDefault(x => x.UserId == id);
+        // POST: api/User
+        [HttpPost]
+        public IActionResult CreateUser(User user)
+        {
+            _context.Users.Add(user);
+            _context.SaveChanges();
 
-        if (user == null)
-            return NotFound();
+            return Ok(user);
+        }
 
-        _context.Users.Remove(user);
+        // POST: api/User/signup
+        [HttpPost("signup")]
+        public IActionResult Signup(User user)
+        {
+            var existingUser = _context.Users
+                .FirstOrDefault(x => x.Username == user.Username);
 
-        return Ok("User deleted");
-    }
-    [HttpGet("role/{role}")]
-    public IActionResult GetUsersByRole(string role)
-    {
-        var usersByRole = _context.Users.Where(x => x.Role.ToLower() == role.ToLower()).ToList();
-        if (usersByRole.Count == 0)
-            return NotFound("No users found with this role");
-        return Ok(usersByRole);
+            if (existingUser != null)
+                return BadRequest("Username already exists");
+
+            _context.Users.Add(user);
+            _context.SaveChanges();
+
+            return Ok(user);
+        }
+
+        // POST: api/User/login
+        [HttpPost("login")]
+        public IActionResult Login(string username, string password)
+        {
+            var user = _context.Users.FirstOrDefault(x =>
+                x.Username == username &&
+                x.Password == password);
+
+            if (user == null)
+                return Unauthorized("Invalid username or password");
+
+            return Ok(new
+            {
+                message = "Login successful",
+                userId = user.UserId,
+                name = user.Name,
+                role = user.Role
+            });
+        }
+
+        // POST: api/User/logout
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            return Ok("Logout successful");
+        }
+
+        // PUT: api/User/1
+        [HttpPut("{id}")]
+        public IActionResult UpdateUser(int id, User user)
+        {
+            var existingUser = _context.Users
+                .FirstOrDefault(x => x.UserId == id);
+
+            if (existingUser == null)
+                return NotFound("User not found");
+
+            existingUser.Name = user.Name;
+            existingUser.Department = user.Department;
+            existingUser.Username = user.Username;
+            existingUser.Password = user.Password;
+            existingUser.Role = user.Role;
+
+            _context.SaveChanges();
+
+            return Ok(existingUser);
+        }
+
+        // DELETE: api/User/1
+        [HttpDelete("{id}")]
+        public IActionResult DeleteUser(int id)
+        {
+            var user = _context.Users
+                .FirstOrDefault(x => x.UserId == id);
+
+            if (user == null)
+                return NotFound("User not found");
+
+            _context.Users.Remove(user);
+            _context.SaveChanges();
+
+            return Ok("User deleted successfully");
+        }
+
+        // GET: api/User/role/Student
+        [HttpGet("role/{role}")]
+        public IActionResult GetUsersByRole(string role)
+        {
+            var usersByRole = _context.Users
+                .Where(x => x.Role.ToLower() == role.ToLower())
+                .ToList();
+
+            if (usersByRole.Count == 0)
+                return NotFound("No users found with this role");
+
+            return Ok(usersByRole);
+        }
     }
 }

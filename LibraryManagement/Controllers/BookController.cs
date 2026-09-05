@@ -1,4 +1,5 @@
-﻿using LibraryManagement.Models;
+﻿using LibraryManagement.Data;
+using LibraryManagement.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LibraryManagement.Controllers
@@ -7,18 +8,23 @@ namespace LibraryManagement.Controllers
     [ApiController]
     public class BookController : ControllerBase
     {
-        private static List<Book> books = new List<Book>();
+        private readonly ApplicationDbContext _context;
+
+        public BookController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
 
         [HttpGet]
         public IActionResult GetBooks()
         {
-            return Ok(books);
+            return Ok(_context.Books.ToList());
         }
 
         [HttpGet("{id}")]
         public IActionResult GetBook(int id)
         {
-            var book = books.FirstOrDefault(x => x.BookId == id);
+            var book = _context.Books.FirstOrDefault(x => x.BookId == id);
 
             if (book == null)
                 return NotFound();
@@ -29,7 +35,8 @@ namespace LibraryManagement.Controllers
         [HttpPost]
         public IActionResult CreateBook(Book book)
         {
-            books.Add(book);
+            _context.Books.Add(book);
+            _context.SaveChanges();
 
             return Ok(book);
         }
@@ -37,7 +44,7 @@ namespace LibraryManagement.Controllers
         [HttpPut("{id}")]
         public IActionResult UpdateBook(int id, Book book)
         {
-            var existingBook = books.FirstOrDefault(x => x.BookId == id);
+            var existingBook = _context.Books.FirstOrDefault(x => x.BookId == id);
 
             if (existingBook == null)
                 return NotFound();
@@ -45,18 +52,21 @@ namespace LibraryManagement.Controllers
             existingBook.Title = book.Title;
             existingBook.Author = book.Author;
 
+            _context.SaveChanges();
+
             return Ok(existingBook);
         }
 
         [HttpDelete("{id}")]
         public IActionResult DeleteBook(int id)
         {
-            var book = books.FirstOrDefault(x => x.BookId == id);
+            var book = _context.Books.FirstOrDefault(x => x.BookId == id);
 
             if (book == null)
                 return NotFound();
 
-            books.Remove(book);
+            _context.Books.Remove(book);
+            _context.SaveChanges();
 
             return Ok("Book deleted");
         }

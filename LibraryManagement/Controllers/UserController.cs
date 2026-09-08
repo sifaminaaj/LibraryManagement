@@ -1,7 +1,10 @@
 ﻿using LibraryManagement.Data;
 using LibraryManagement.Models;
 using Microsoft.AspNetCore.Mvc;
-
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
 namespace LibraryManagement.Controllers
 {
     [Route("api/[controller]")]
@@ -44,6 +47,7 @@ namespace LibraryManagement.Controllers
             return Ok(user);
         }
 
+      
         // POST: api/User/signup
         [HttpPost("signup")]
         public IActionResult Signup(User user)
@@ -57,9 +61,15 @@ namespace LibraryManagement.Controllers
             _context.Users.Add(user);
             _context.SaveChanges();
 
-            return Ok(user);
+            return Ok(new
+            {
+                message = "Signup successful",
+                userId = user.UserId,
+                name = user.Name,
+                username = user.Username,
+                role = user.Role
+            });
         }
-
         // POST: api/User/login
         [HttpPost("login")]
         public IActionResult Login(string username, string password)
@@ -71,9 +81,40 @@ namespace LibraryManagement.Controllers
             if (user == null)
                 return Unauthorized("Invalid username or password");
 
+            var claims = new[]
+            {
+        new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+        new Claim(ClaimTypes.Name, user.Username),
+        new Claim(ClaimTypes.Role, user.Role)
+    };
+
+            var key = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(
+                    HttpContext.RequestServices
+                        .GetRequiredService<IConfiguration>()["Jwt:Key"]!
+                )
+            );
+
+            var credentials = new SigningCredentials(
+                key,
+                SecurityAlgorithms.HmacSha256
+            );
+
+            var token = new JwtSecurityToken(
+                issuer: "LibraryManagementAPI",
+                audience: "LibraryManagementUsers",
+                claims: claims,
+                expires: DateTime.UtcNow.AddHours(1),
+                signingCredentials: credentials
+            );
+
+            var jwtToken = new JwtSecurityTokenHandler()
+                .WriteToken(token);
+
             return Ok(new
             {
                 message = "Login successful",
+                token = jwtToken,
                 userId = user.UserId,
                 name = user.Name,
                 role = user.Role

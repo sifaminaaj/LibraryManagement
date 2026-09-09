@@ -1,7 +1,7 @@
 ﻿using LibraryManagement.Data;
 using LibraryManagement.Models;
 using Microsoft.AspNetCore.Mvc;
-
+using Microsoft.AspNetCore.Authorization;
 namespace LibraryManagement.Controllers
 {
     [Route("api/[controller]")]
@@ -20,7 +20,7 @@ namespace LibraryManagement.Controllers
         {
             return Ok(_context.Books.ToList());
         }
-
+        [Authorize]
         [HttpGet("{id}")]
         public IActionResult GetBook(int id)
         {
@@ -30,6 +30,21 @@ namespace LibraryManagement.Controllers
                 return NotFound();
 
             return Ok(book);
+        }
+        [Authorize(Roles = "Admin")]
+        [HttpGet("cost")]
+        public IActionResult GetBookCost()
+        {
+            var books = _context.Books
+                .Select(x => new
+                {
+                    x.BookId,
+                    x.Title,
+                    x.Cost
+                })
+                .ToList();
+
+            return Ok(books);
         }
 
         [HttpPost]
@@ -70,5 +85,6 @@ namespace LibraryManagement.Controllers
 
             return Ok("Book deleted");
         }
+
     }
 }
